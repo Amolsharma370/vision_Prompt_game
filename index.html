@@ -141,8 +141,18 @@
         // ======================================================
         // 🟢 PASTE GROQ API KEY HERE 🟢
         // Load key from config.js, or warn if missing
-        const API_KEY = (typeof SECRET_CONFIG !== 'undefined') ? SECRET_CONFIG.API_KEY : "";
+        
+
         // ======================================================
+        // 1. Try to get key from config.js (Local play)
+// 2. If not found, ask the user to input it (Online play)
+let API_KEY = "";
+if (typeof SECRET_CONFIG !== 'undefined') {
+    API_KEY = SECRET_CONFIG.API_KEY;
+} else {
+    // If playing online, prompts user once
+    API_KEY = prompt("Enter Groq API Key to play:");
+}
 
         // --- CONFIGURATION ---
         const gameData = [
