@@ -153,6 +153,45 @@ if (typeof SECRET_CONFIG !== 'undefined') {
     // If playing online, prompts user once
     API_KEY = prompt("Enter Groq API Key to play:");
 }
+// Remove your actual key from the code!
+
+
+function initializeGame() {
+    // 1. Check if we have a key in memory
+    if (API_KEY.startsWith("gsk_")) {
+        startLevel(0);
+        return;
+    }
+
+    // 2. If not, check if they saved it previously
+    const savedKey = localStorage.getItem("my_groq_key");
+    if (savedKey) {
+        API_KEY = savedKey;
+        startLevel(0);
+        return;
+    }
+
+    // 3. If no key, ask the user for one
+    const userKey = prompt("Please paste your Groq API Key to play:");
+    
+    if (userKey && userKey.startsWith("gsk_")) {
+        API_KEY = userKey;
+        // Optional: Save it so they don't have to type it again
+        if(confirm("Save key for next time?")) {
+            localStorage.setItem("my_groq_key", userKey);
+        }
+        
+        // Update UI
+        document.getElementById('setup-screen').classList.add('hidden');
+        document.getElementById('hud').classList.remove('hidden');
+        document.getElementById('chat-container').classList.remove('hidden');
+        document.getElementById('input-area').classList.remove('hidden');
+        
+        startLevel(0);
+    } else {
+        alert("Valid API Key required to play!");
+    }
+}
 
         // --- CONFIGURATION ---
         const gameData = [
