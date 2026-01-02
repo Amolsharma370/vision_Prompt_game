@@ -23,7 +23,20 @@
             margin: 0; 
             display: flex; 
             flex-direction: column; 
-            overflow: hidden; 
+            overflow: hidden;
+            position: relative;
+        }
+        
+        /* Matrix Rain Effect */
+        #matrix-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.15;
+            pointer-events: none;
         }
         
         /* --- HUD (Top Bar) --- */
@@ -36,7 +49,8 @@
             justify-content: space-between; 
             align-items: center; 
             font-weight: bold; 
-            z-index: 10; 
+            z-index: 10;
+            position: relative;
         }
 
         .hud-left-container {
@@ -50,6 +64,20 @@
             width: auto;
             display: block;
         }
+
+        .hud-stat {
+            transition: all 0.3s;
+        }
+
+        .hud-stat.warning {
+            color: var(--red);
+            animation: pulse 0.5s ease-in-out;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
         
         /* --- Chat Area --- */
         #chat-container { 
@@ -60,9 +88,24 @@
             flex-direction: column; 
             gap: 15px; 
             background: radial-gradient(circle at center, #0a0f0a 0%, #000 100%); 
+            position: relative;
+            z-index: 1;
         }
         
-        .message { max-width: 85%; padding: 12px 18px; border-radius: 4px; line-height: 1.5; word-wrap: break-word; }
+        .message { 
+            max-width: 85%; 
+            padding: 12px 18px; 
+            border-radius: 4px; 
+            line-height: 1.5; 
+            word-wrap: break-word;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         .user-msg { align-self: flex-end; background-color: var(--dim-green); color: #fff; border-right: 3px solid var(--green); }
         .ai-msg { align-self: flex-start; background-color: #000; border: 1px solid var(--green); border-left: 3px solid var(--green); }
         .sys-msg { align-self: center; color: #fff; font-size: 0.9rem; margin: 10px 0; border: 1px dashed var(--dim-green); padding: 5px; text-align: center; opacity: 0.8; }
@@ -74,9 +117,11 @@
             background: #000; 
             border-top: 2px solid var(--dim-green); 
             display: flex; 
-            gap: 10px; 
+            gap: 10px;
+            position: relative;
+            z-index: 1;
         }
-        input[type="text"] { 
+        input[type="text"], input[type="password"] { 
             flex-grow: 1; 
             background: #0a0a0a; 
             border: 1px solid var(--green); 
@@ -84,7 +129,12 @@
             padding: 15px; 
             font-family: inherit; 
             outline: none; 
-            font-size: 1rem; 
+            font-size: 1rem;
+            transition: box-shadow 0.3s;
+        }
+
+        input[type="text"]:focus, input[type="password"]:focus {
+            box-shadow: 0 0 15px var(--dim-green);
         }
         
         /* --- Buttons --- */
@@ -99,10 +149,127 @@
             transition: 0.2s; 
             font-family: var(--font);
         }
-        button:hover { background: #fff; box-shadow: 0 0 15px var(--green); }
+        button:hover { background: #fff; box-shadow: 0 0 15px var(--green); transform: scale(1.05); }
+
+        .retry-btn, .big-btn-secondary {
+            background: var(--red);
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            margin-top: 20px;
+        }
+        .retry-btn:hover, .big-btn-secondary:hover {
+            background: #ff6666;
+            box-shadow: 0 0 15px var(--red);
+        }
+
+        /* --- Modal Popup --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: #000;
+            border: 3px solid var(--green);
+            padding: 40px;
+            text-align: center;
+            max-width: 500px;
+            animation: modalPop 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: 0 0 50px var(--green);
+        }
+
+        .modal-content.win {
+            border-color: var(--green);
+            box-shadow: 0 0 50px var(--green);
+        }
+
+        .modal-content.lose {
+            border-color: var(--red);
+            box-shadow: 0 0 50px var(--red);
+        }
+
+        .modal-content.warning {
+            border-color: orange;
+            box-shadow: 0 0 50px orange;
+        }
+
+        @keyframes modalPop {
+            0% { transform: scale(0.5) rotate(-5deg); opacity: 0; }
+            50% { transform: scale(1.1) rotate(2deg); }
+            100% { transform: scale(1) rotate(0); opacity: 1; }
+        }
+
+        .modal-title {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px currentColor;
+        }
+
+        .modal-title.win {
+            color: var(--green);
+            animation: glow 1.5s ease-in-out infinite;
+        }
+
+        .modal-title.lose {
+            color: var(--red);
+            animation: glowRed 1.5s ease-in-out infinite;
+        }
+
+        .modal-title.warning {
+            color: orange;
+            animation: glowOrange 1.5s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { text-shadow: 0 0 20px var(--green); }
+            50% { text-shadow: 0 0 40px var(--green), 0 0 60px var(--green); }
+        }
+
+        @keyframes glowRed {
+            0%, 100% { text-shadow: 0 0 20px var(--red); }
+            50% { text-shadow: 0 0 40px var(--red), 0 0 60px var(--red); }
+        }
+
+        @keyframes glowOrange {
+            0%, 100% { text-shadow: 0 0 20px orange; }
+            50% { text-shadow: 0 0 40px orange, 0 0 60px orange; }
+        }
+
+        .modal-message {
+            font-size: 1.2rem;
+            margin: 20px 0;
+            line-height: 1.6;
+        }
 
         /* --- Overlays & Setup --- */
-        .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; text-align: center; }
+        .overlay { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: rgba(0,0,0,0.95); 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
+            z-index: 100; 
+            text-align: center; 
+        }
         .hidden { display: none !important; }
         
         .big-btn { 
@@ -117,48 +284,109 @@
         }
         .big-btn:hover { background: var(--green); color: black; }
 
+        /* Setup Box Container */
+        .setup-box {
+            background: #000;
+            border: 3px solid var(--green);
+            padding: 40px;
+            border-radius: 8px;
+            max-width: 500px;
+            box-shadow: 0 0 40px var(--dim-green);
+        }
+
+        .setup-box h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px var(--green);
+        }
+
+        .setup-box p {
+            margin-bottom: 25px;
+            opacity: 0.9;
+        }
+
         /* Key Input Field Style */
         .key-input {
             background: #000;
-            border: 1px solid var(--green);
+            border: 2px solid var(--green);
             color: var(--green);
             padding: 15px;
-            width: 350px;
+            width: 100%;
             text-align: center;
             font-family: var(--font);
             font-size: 1rem;
-            margin-bottom: 10px;
+            margin-bottom: 20px;
             outline: none;
+            border-radius: 4px;
         }
-        .key-input:focus { box-shadow: 0 0 10px var(--dim-green); }
+        .key-input:focus { box-shadow: 0 0 15px var(--dim-green); }
         
         /* Loading Animation */
         .dots::after { content: '.'; animation: dots 1s steps(5, end) infinite; }
         @keyframes dots { 0%, 20% { content: '.'; } 40% { content: '..'; } 60% { content: '...'; } 80%, 100% { content: ''; } }
 
+        /* Screen Shake */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .shake {
+            animation: shake 0.5s ease-in-out;
+        }
+
+        /* Particles for celebrations */
+        .particle {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: var(--green);
+            pointer-events: none;
+            z-index: 300;
+            animation: particle-fall 2s ease-out forwards;
+        }
+
+        @keyframes particle-fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
     </style>
 </head>
 <body>
+    <canvas id="matrix-canvas"></canvas>
 
     <div id="setup-screen" class="overlay">
-        <h1>Vision Cse</h1>
-        <p>Enter your API Key to initialize system.</p>
-        
-        <input type="password" id="api-key-input" class="key-input" placeholder="Paste Key (starts with gsk_...)" autocomplete="off">
-        
-        <button class="big-btn" onclick="initializeGame()">CONNECT SYSTEM</button>
-        
-        <p style="font-size: 0.8rem; margin-top: 20px; opacity: 0.7;">
-            Get a free key at <a href="https://console.groq.com/keys" target="_blank" style="color: var(--green);">console.groq.com</a>
-        </p>
+        <div class="setup-box">
+            <h1>Vision CSE</h1>
+            <p>Enter your API Key to initialize system.</p>
+            
+            <input type="password" id="api-key-input" class="key-input" placeholder="Paste Key (starts with gsk_...)" autocomplete="off">
+            
+            <button class="big-btn" onclick="initializeGame()">CONNECT SYSTEM</button>
+            
+            <p style="font-size: 0.8rem; margin-top: 20px; opacity: 0.7;">
+                Get a free key at <a href="https://console.groq.com/keys" target="_blank" style="color: var(--green);">console.groq.com</a>
+            </p>
+        </div>
     </div>
 
     <div id="hud" class="hidden">
         <div class="hud-left-container">
-            <img src="https://visionmanit.in/static/media/logo%20(1).73c5a5efc061f3b8a8e6.png" alt="Vision Logo" class="hud-logo"></div>
-            <div>LEVEL <span id="lvl-num">1</span></div>
-        
-        <div>ATTEMPTS: <span id="atmpt-num">10</span></div>
+            <img src="https://visionmanit.in/static/media/logo%20(1).73c5a5efc061f3b8a8e6.png" alt="Vision Logo" class="hud-logo">
+        </div>
+        <div class="hud-stat">LEVEL <span id="lvl-num">1</span></div>
+        <div class="hud-stat" id="attempts-display">ATTEMPTS: <span id="atmpt-num">10</span></div>
     </div>
     
     <div id="chat-container" class="hidden"></div>
@@ -169,10 +397,9 @@
     </div>
 
     <script>
-        // VARIABLE TO STORE THE KEY (Starts Empty)
         let API_KEY = ""; 
+        let shownLowAttemptsWarning = false;
 
-        // --- CONFIGURATION ---
         const gameData = [
             {
                 level: 1, attempts: 10,
@@ -191,9 +418,209 @@
             }
         ];
 
-        let state = { level: 0, attempts: 0, password: "" };
+        let state = { 
+            level: 0, 
+            attempts: 0, 
+            password: "", 
+            gameStatus: "playing", 
+            chatHistory: [] 
+        };
 
-        // --- INITIALIZATION ---
+        // LocalStorage helper functions
+        function saveToStorage(key, value) {
+            try {
+                localStorage.setItem(key, JSON.stringify(value));
+            } catch (e) {
+                console.error('Storage save failed:', e);
+            }
+        }
+
+        function loadFromStorage(key) {
+            try {
+                const item = localStorage.getItem(key);
+                return item ? JSON.parse(item) : null;
+            } catch (e) {
+                console.error('Storage load failed:', e);
+                return null;
+            }
+        }
+
+        function removeFromStorage(key) {
+            try {
+                localStorage.removeItem(key);
+            } catch (e) {
+                console.error('Storage remove failed:', e);
+            }
+        }
+
+        // Matrix Rain Effect
+        function initMatrix() {
+            const canvas = document.getElementById('matrix-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*';
+            const fontSize = 14;
+            const columns = canvas.width / fontSize;
+            const drops = Array(Math.floor(columns)).fill(1);
+            
+            function draw() {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                ctx.fillStyle = '#00ff41';
+                ctx.font = fontSize + 'px monospace';
+                
+                for (let i = 0; i < drops.length; i++) {
+                    const text = chars[Math.floor(Math.random() * chars.length)];
+                    ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                    
+                    if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                        drops[i] = 0;
+                    }
+                    drops[i]++;
+                }
+            }
+            
+            setInterval(draw, 33);
+        }
+
+        // Sound Effects using Web Audio API
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            if (type === 'success') {
+                oscillator.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+                oscillator.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1);
+                oscillator.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2);
+                gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                oscillator.start(audioCtx.currentTime);
+                oscillator.stop(audioCtx.currentTime + 0.5);
+            } else if (type === 'fail') {
+                oscillator.frequency.setValueAtTime(200, audioCtx.currentTime);
+                oscillator.frequency.setValueAtTime(100, audioCtx.currentTime + 0.2);
+                gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                oscillator.start(audioCtx.currentTime);
+                oscillator.stop(audioCtx.currentTime + 0.5);
+            } else if (type === 'click') {
+                oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
+                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                oscillator.start(audioCtx.currentTime);
+                oscillator.stop(audioCtx.currentTime + 0.1);
+            } else if (type === 'warning') {
+                oscillator.frequency.setValueAtTime(400, audioCtx.currentTime);
+                gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+                oscillator.start(audioCtx.currentTime);
+                oscillator.stop(audioCtx.currentTime + 0.2);
+            }
+        }
+
+        function createParticles(count, color) {
+            for (let i = 0; i < count; i++) {
+                setTimeout(() => {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    particle.style.left = Math.random() * window.innerWidth + 'px';
+                    particle.style.top = '0px';
+                    particle.style.background = color;
+                    document.body.appendChild(particle);
+                    
+                    setTimeout(() => particle.remove(), 2000);
+                }, i * 50);
+            }
+        }
+
+        function showModal(type, message, password = '', includeRetry = true) {
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay';
+            
+            const content = document.createElement('div');
+            content.className = `modal-content ${type}`;
+            
+            const title = document.createElement('div');
+            title.className = `modal-title ${type}`;
+            
+            if (type === 'win') {
+                title.textContent = 'ACCESS GRANTED!';
+            } else if (type === 'lose') {
+                title.textContent = 'MISSION FAILED';
+            } else if (type === 'warning') {
+                title.textContent = 'WARNING!';
+            }
+            
+            const msg = document.createElement('div');
+            msg.className = 'modal-message';
+            msg.innerHTML = message;
+            
+            content.appendChild(title);
+            content.appendChild(msg);
+
+            if (includeRetry) {
+                const buttonGroup = document.createElement('div');
+                buttonGroup.className = 'button-group';
+
+                const retryBtn = document.createElement('button');
+                retryBtn.className = 'retry-btn';
+                retryBtn.textContent = 'RESTART FROM LEVEL 1';
+                retryBtn.onclick = () => {
+                    playSound('click');
+                    overlay.remove();
+                    retryGame();
+                };
+
+                const changeKeyBtn = document.createElement('button');
+                changeKeyBtn.className = 'big-btn-secondary';
+                changeKeyBtn.textContent = 'CHANGE API KEY';
+                changeKeyBtn.onclick = () => {
+                    playSound('click');
+                    overlay.remove();
+                    resetToSetup();
+                };
+
+                buttonGroup.appendChild(retryBtn);
+                buttonGroup.appendChild(changeKeyBtn);
+                content.appendChild(buttonGroup);
+            } else {
+                // For warning modal, just OK button
+                const okBtn = document.createElement('button');
+                okBtn.className = 'retry-btn';
+                okBtn.textContent = 'UNDERSTOOD';
+                okBtn.onclick = () => {
+                    playSound('click');
+                    overlay.remove();
+                };
+                content.appendChild(okBtn);
+            }
+            
+            overlay.appendChild(content);
+            document.body.appendChild(overlay);
+            
+            if (type === 'win') {
+                playSound('success');
+                createParticles(30, '#00ff41');
+            } else if (type === 'lose') {
+                playSound('fail');
+                document.getElementById('chat-container').classList.add('shake');
+                setTimeout(() => {
+                    document.getElementById('chat-container').classList.remove('shake');
+                }, 500);
+            } else if (type === 'warning') {
+                playSound('warning');
+            }
+        }
+
         function initializeGame() {
             const inputField = document.getElementById('api-key-input');
             const userKey = inputField.value.trim();
@@ -204,21 +631,97 @@
                 return;
             }
 
-            // Store key in memory (not in code file)
             API_KEY = userKey;
+            saveToStorage('ai_guard_api_key', userKey);
+            playSound('success');
             
+            showGameInterface();
+        }
+
+        function showGameInterface() {
             document.getElementById('setup-screen').classList.add('hidden');
             document.getElementById('hud').classList.remove('hidden');
             document.getElementById('chat-container').classList.remove('hidden');
             document.getElementById('input-area').classList.remove('hidden');
             
-            startLevel(0);
+            initMatrix();
+            
+            // Check if there's saved progress
+            const savedState = loadFromStorage('ai_guard_state');
+            const savedWarning = loadFromStorage('ai_guard_warning');
+            
+            if (savedState && savedState.gameStatus === "playing") {
+                // Restore saved game
+                state = savedState;
+                shownLowAttemptsWarning = savedWarning || false;
+                updateHUD();
+                restoreChatHistory();
+                addMsgToDisplay("system", `PROGRESS RESTORED. LEVEL ${state.level + 1} RESUMED.`);
+            } else {
+                // Start new game
+                startLevel(0);
+            }
         }
+
+        function restoreChatHistory() {
+            const chat = document.getElementById('chat-container');
+            chat.innerHTML = "";
+            state.chatHistory.forEach(msg => {
+                addMsgToDisplay(msg.sender, msg.text);
+            });
+        }
+
+        function saveGameState() {
+            saveToStorage('ai_guard_state', state);
+            saveToStorage('ai_guard_warning', shownLowAttemptsWarning);
+        }
+
+        function resetToSetup() {
+            // Hide game interface
+            document.getElementById('hud').classList.add('hidden');
+            document.getElementById('chat-container').classList.add('hidden');
+            document.getElementById('input-area').classList.add('hidden');
+            
+            // Show setup screen
+            document.getElementById('setup-screen').classList.remove('hidden');
+            document.getElementById('api-key-input').value = '';
+            document.getElementById('api-key-input').focus();
+            
+            // Clear everything
+            API_KEY = "";
+            state = { 
+                level: 0, 
+                attempts: 0, 
+                password: "", 
+                gameStatus: "playing", 
+                chatHistory: [] 
+            };
+            shownLowAttemptsWarning = false;
+            removeFromStorage('ai_guard_api_key');
+            removeFromStorage('ai_guard_state');
+            removeFromStorage('ai_guard_warning');
+        }
+
+        // Auto-load on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedKey = loadFromStorage('ai_guard_api_key');
+            if (savedKey) {
+                API_KEY = savedKey;
+                showGameInterface();
+            }
+        });
 
         function startLevel(idx) {
             state.level = idx;
+            state.gameStatus = "playing";
+            state.chatHistory = [];
+            shownLowAttemptsWarning = false;
+            
             if (idx >= gameData.length) {
-                addMsg("system", "MISSION ACCOMPLISHED. SYSTEM HACKED.");
+                state.gameStatus = "won";
+                saveGameState();
+                document.getElementById('input-area').classList.add('hidden');
+                showModal('win', 'All systems compromised.<br>You are the ultimate hacker!');
                 return;
             }
 
@@ -227,40 +730,66 @@
             state.attempts = data.attempts;
             
             updateHUD();
+            saveGameState();
             document.getElementById('chat-container').innerHTML = "";
             addMsg("system", `LEVEL ${idx+1} INITIALIZED. TARGET LOCKED.`);
+            playSound('click');
         }
 
-        function handleEnter(e) { if(e.key === "Enter") processTurn(); }
+        function handleEnter(e) { 
+            if(e.key === "Enter") processTurn(); 
+        }
 
         async function processTurn() {
             const input = document.getElementById('user-input');
             const text = input.value.trim();
             if (!text) return;
 
+            playSound('click');
             addMsg("user", text);
             input.value = "";
 
             if (text.toLowerCase().includes(state.password)) {
                 addMsg("system", "PASSWORD ACCEPTED. ACCESS GRANTED.");
+                playSound('success');
+                createParticles(15, '#00ff41');
                 setTimeout(() => startLevel(state.level + 1), 2000);
                 return;
             }
 
             state.attempts--;
             updateHUD();
+            saveGameState();
+            
+            // Show warning when attempts reach 3
+            if (state.attempts === 3 && !shownLowAttemptsWarning) {
+                shownLowAttemptsWarning = true;
+                saveGameState();
+                showModal('warning', `<strong>CRITICAL WARNING!</strong><br><br>Only ${state.attempts} attempts remaining.<br>System breach imminent!`, '', false);
+            }
+            
+            if (state.attempts <= 3 && state.attempts > 0) {
+                playSound('warning');
+                document.getElementById('attempts-display').classList.add('warning');
+                setTimeout(() => {
+                    document.getElementById('attempts-display').classList.remove('warning');
+                }, 500);
+            }
+            
             if (state.attempts <= 0) {
-                addMsg("system", `GAME OVER. PASSWORD WAS: ${state.password.toUpperCase()}`);
+                state.gameStatus = "lost";
+                saveGameState();
                 document.getElementById('input-area').classList.add('hidden');
+                showModal('lose', `Security breach failed.<br>The password was: <strong style="color: #00ff41;">${state.password.toUpperCase()}</strong>`);
                 return;
             }
 
-            addMsg("ai", '<span class="dots">Thinking</span>');
+            addMsgToDisplay("ai", '<span class="dots">Thinking</span>');
             
             const reply = await fetchGroq(text);
             
             const chat = document.getElementById('chat-container');
-            if (chat.lastChild.innerHTML.includes("Thinking")) {
+            if (chat.lastChild && chat.lastChild.innerHTML.includes("Thinking")) {
                 chat.removeChild(chat.lastChild);
             }
             addMsg("ai", reply);
@@ -299,18 +828,36 @@
                     });
 
                     const json = await response.json();
+                    
                     if (json.error) {
                         console.warn(`Model ${modelName} failed:`, json.error.message);
+                        
+                        // Check if it's an authentication error
+                        if (json.error.message.includes('Invalid API Key') || 
+                            json.error.message.includes('authentication') ||
+                            json.error.message.includes('Unauthorized')) {
+                            
+                            showModal('lose', `<strong>API KEY ERROR!</strong><br><br>${json.error.message}<br><br>Please update your API key.`);
+                            return "API Key Error - Please change your key.";
+                        }
                         continue; 
                     }
                     return json.choices[0].message.content;
 
-                } catch (e) { console.error("Net error", e); }
+                } catch (e) { 
+                    console.error("Net error", e); 
+                }
             }
             return "Connection Error: Check Internet or API Key.";
         }
 
         function addMsg(sender, text) {
+            state.chatHistory.push({ sender, text });
+            addMsgToDisplay(sender, text);
+            saveGameState();
+        }
+
+        function addMsgToDisplay(sender, text) {
             const div = document.createElement('div');
             div.className = `message ${sender}-msg`;
             if (sender === "system") div.className = "message sys-msg";
@@ -323,6 +870,14 @@
         function updateHUD() {
             document.getElementById('lvl-num').innerText = state.level + 1;
             document.getElementById('atmpt-num').innerText = state.attempts;
+        }
+
+        function retryGame() {
+            // Clear saved game state but keep API key
+            removeFromStorage('ai_guard_state');
+            removeFromStorage('ai_guard_warning');
+            document.getElementById('input-area').classList.remove('hidden');
+            startLevel(0);
         }
     </script>
 </body>
